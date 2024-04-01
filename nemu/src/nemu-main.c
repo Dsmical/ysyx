@@ -12,7 +12,6 @@
 *
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
-
 #include <common.h>
 
 void init_monitor(int, char *[]);
@@ -27,6 +26,21 @@ int main(int argc, char *argv[]) {
 #else
   init_monitor(argc, argv);
 #endif
+  /*test expr()*/
+  // FILE *fp = fopen("/home/dsm/ysyx-workbench/nemu/tools/gen-expr/input", "r");
+  //   assert(fp != NULL);
+  //   word_t expr(char *e, bool *success);
+  //   char line[1024];
+  //   int result=0;
+  //   bool flag =false;
+  //   char expression[1024];
+  //   while (fgets(line, sizeof(line), fp)) {
+  //   if (sscanf(line, "%d %1023[^\n]", &result, expression) == 2) {
+  //     expr(expression,&flag);
+  //     printf("Result: %d, Expression: %s\n", result, expression);       
+  //   }else {printf("Error reading line\n");}
+  //   }
+  //   fclose(fp);
 
   /* Start engine. */
   engine_start();

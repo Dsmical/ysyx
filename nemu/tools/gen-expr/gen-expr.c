@@ -21,6 +21,7 @@
 #include <string.h>
 
 // this should be enough
+static int  index_buf=0;
 static char buf[65536] = {};
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
 static char *code_format =
@@ -30,9 +31,55 @@ static char *code_format =
 "  printf(\"%%u\", result); "
 "  return 0; "
 "}";
+static uint32_t choose(uint32_t num){
+ 
+  return rand()% num;
+}
+
+static void gen_num(){ 
+  uint32_t num = rand() % 100;
+  if(num ==0)num =1; 
+  char str[3]; 
+  sprintf(str, "%d", num);
+  for(int i=0;i<strlen(str);i++){
+    buf[index_buf++]= str[i];
+ }
+}
+
+static void gen(char c){
+  buf[index_buf++]=c;
+}
+static void gen_rand_op(){
+  switch(choose(4)){
+    case 0:buf[index_buf++]='+';break;
+    case 1:buf[index_buf++]='-';break;
+    case 2:buf[index_buf++]='*';break;
+    default:{
+      // 生成除法操作时，需要避免除数为0的情况
+      uint32_t divisor;
+      do {
+        divisor = rand() % 100;  // 生成随机除数
+      } while (divisor == 0);   // 避免除数为0
+      char str[3];
+      sprintf(str, "%d", divisor);
+      buf[index_buf++] = '/';
+      for (int i = 0; i < strlen(str); i++) {
+        buf[index_buf++] = str[i];
+      }
+      gen_rand_op();//再随机生成一个运算符
+      break;
+    }
+  }
+}
 
 static void gen_rand_expr() {
-  buf[0] = '\0';
+   if(index_buf > 65530)
+       	printf("overSize\n");
+   switch (choose(3)) {
+    case 0: gen_num(); break;
+    case 1: gen('('); gen_rand_expr(); gen(')'); break;
+    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -41,10 +88,13 @@ int main(int argc, char *argv[]) {
   int loop = 1;
   if (argc > 1) {
     sscanf(argv[1], "%d", &loop);
-  }
+  } 
   int i;
   for (i = 0; i < loop; i ++) {
+    index_buf = 0;              // 重置缓冲区索引
+    memset(buf, 0, sizeof(buf)); //清空缓冲区内容
     gen_rand_expr();
+
 
     sprintf(code_buf, code_format, buf);
 
@@ -61,9 +111,16 @@ int main(int argc, char *argv[]) {
 
     int result;
     ret = fscanf(fp, "%d", &result);
+    if (ret == 1) {
+    // 检查表达式计算结果是否溢出
+    if (result >= 0) {
+        unsigned int final_result = (unsigned int)result;
+        printf("%u %s\n", final_result, buf);
+    }  else continue;
+    } else printf("Error: Unable to read result\n");
     pclose(fp);
 
-    printf("%u %s\n", result, buf);
+    //printf("%u %s\n", result, buf);
   }
   return 0;
 }

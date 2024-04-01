@@ -18,6 +18,11 @@
 
 #include <common.h>
 
+void creat_wp(char *arg);
+void delete_wp(int N);
+void wp_display();
+void check_wp();
+
 word_t expr(char *e, bool *success);
 
 #endif
