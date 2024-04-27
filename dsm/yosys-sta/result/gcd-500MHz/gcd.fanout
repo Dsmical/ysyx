@@ -1,0 +1,11 @@
+Generate the report at 2024-03-17T14:44:03, GitVersion: d9c76846ce6e28304fe193503daa05d7efa8c4cc.
++-------------------+-----------+---------+--------------+----------+--------+
+| Net / InstPin     | MaxFanout | FanLoad | FanLoadSlack | CellPort | Remark |
++-------------------+-----------+---------+--------------+----------+--------+
+| resp_msg[15]      |           |         |              |          |        |
+| dpath/sub/_295_:Z | NA        | 2       | NA           | BUF_X1/Z |        |
+| dpath/sub/_005_   |           |         |              |          |        |
+| dpath/sub/_290_:Z | NA        | 2       | NA           | BUF_X1/Z |        |
+| dpath/sub/_020_   |           |         |              |          |        |
+| dpath/sub/_288_:Z | NA        | 2       | NA           | BUF_X1/Z |        |
++-------------------+-----------+---------+--------------+----------+--------+

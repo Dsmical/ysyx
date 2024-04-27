@@ -1,0 +1,55 @@
+
+19. Executing CHECK pass (checking for obvious problems).
+checking module ScanCodeToASCII..
+Warning: Wire ScanCodeToASCII.\ascii_code [7] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [6] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [5] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [4] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [3] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [2] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [1] is used but has no driver.
+Warning: Wire ScanCodeToASCII.\ascii_code [0] is used but has no driver.
+checking module ps2_keyboard..
+Warning: Wire ps2_keyboard.\flag is used but has no driver.
+Warning: Wire ps2_keyboard.\data [7] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [6] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [5] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [4] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [3] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [2] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [1] is used but has no driver.
+Warning: Wire ps2_keyboard.\data [0] is used but has no driver.
+checking module seg..
+Warning: Wire seg.\h [6] is used but has no driver.
+Warning: Wire seg.\h [5] is used but has no driver.
+Warning: Wire seg.\h [4] is used but has no driver.
+Warning: Wire seg.\h [3] is used but has no driver.
+Warning: Wire seg.\h [2] is used but has no driver.
+Warning: Wire seg.\h [1] is used but has no driver.
+Warning: Wire seg.\h [0] is used but has no driver.
+checking module top..
+Warning: Wire top.\count[7] is used but has no driver.
+Warning: Wire top.\count[6] is used but has no driver.
+Warning: Wire top.\count[5] is used but has no driver.
+Warning: Wire top.\count[4] is used but has no driver.
+Warning: Wire top.\count[3] is used but has no driver.
+Warning: Wire top.\count[2] is used but has no driver.
+Warning: Wire top.\count[1] is used but has no driver.
+Warning: Wire top.\count[0] is used but has no driver.
+Warning: Wire top.\ps2_value[15] is used but has no driver.
+Warning: Wire top.\ps2_value[14] is used but has no driver.
+Warning: Wire top.\ps2_value[13] is used but has no driver.
+Warning: Wire top.\ps2_value[12] is used but has no driver.
+Warning: Wire top.\ps2_value[11] is used but has no driver.
+Warning: Wire top.\ps2_value[10] is used but has no driver.
+Warning: Wire top.\ps2_value[9] is used but has no driver.
+Warning: Wire top.\ps2_value[8] is used but has no driver.
+Warning: Wire top.\ps2_value[7] is used but has no driver.
+Warning: Wire top.\ps2_value[6] is used but has no driver.
+Warning: Wire top.\ps2_value[5] is used but has no driver.
+Warning: Wire top.\ps2_value[4] is used but has no driver.
+Warning: Wire top.\ps2_value[3] is used but has no driver.
+Warning: Wire top.\ps2_value[2] is used but has no driver.
+Warning: Wire top.\ps2_value[1] is used but has no driver.
+Warning: Wire top.\ps2_value[0] is used but has no driver.
+found and reported 48 problems.
