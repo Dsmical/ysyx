@@ -17,7 +17,6 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
-#include </home/dsm/ysyx-workbench/nemu/src/monitor/sdb/sdb.h>
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -31,7 +30,9 @@ uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
+void iringbuf_display();//iringbuf函数声明 
 void device_update();
+void _check_wp();//监测点检查函数声明
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -39,9 +40,10 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+  
 /*watchpoint difftest*/
 #ifdef CONFIG_WATCHPOINT
-  check_wp();
+  _check_wp();//如果CONFIG_WATCHPOINT定义了，那么每次运行都会执行监测点检查函数
 #endif
 }
 
@@ -98,6 +100,7 @@ static void statistic() {
 
 void assert_fail_msg() {
   isa_reg_display();
+  IFDEF(CONFIG_ITRACE, iringbuf_display());//iringbuf 打印输出
   statistic();
 }
 

@@ -85,7 +85,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[128] __attribute__((used)) = {};
+static Token tokens[65536] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -102,16 +102,18 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        //Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s", i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        
+        Assert(substr_len < sizeof(((Token*)NULL)->str), "%s","the length of substring is too long!");
+	      Assert(nr_token < ARRLEN(tokens), "%s", "tokens are too many!");
 
           position += substr_len;
           switch (rules[i].token_type) {
           case TK_NUM:
           case TK_HEXNUM:
           case TK_REGNAME:
-            if (substr_len >= 128) {
-              printf("Error: The array length is greater than 128\n");
+            if (substr_len >= 32) {
+              printf("Error: The array length is greater than 32\n");
               return false;
             }
             strncpy(tokens[nr_token].str, substr_start, substr_len);
@@ -139,33 +141,32 @@ static bool make_token(char *e) {
 }
 
 bool check_parentheses(int p, int q){
-  if(tokens[p].type !='('||tokens[q].type !=')')
-  return false;
-  int l=p, r=q;
-  while(l<r){
-    if(tokens[l].type=='('){
-      if(tokens[r].type==')'){
-        l++;r--;
-        continue;
-      }
-      else r--;
-    }
-    else if(tokens[l].type==')')return false;
-    else l++;
+  if(tokens[p].type!='('||tokens[q].type!=')')
+    return false;
+  int count=0;
+  for(int i=p;i<=q;i++){
+    if(tokens[i].type=='(')
+      count++;
+    else if(tokens[i].type==')')
+      count--;
+    if(count == 0 && i < q)
+      return false;
   }
+  if(count!=0)
+    return false;
   return true;
 }
 
-static word_t Hex2Dec(char *str){
-  char *endptr;
-    word_t result;
-    result = strtol(str, &endptr, 16);
-    if (*endptr != '\0') {
-        printf("Conversion error: Invalid hex string\n");
-        assert(0); 
-    }
-    return result;
-}
+// static word_t Hex2Dec(char *str){
+//   char *endptr;
+//     word_t result;
+//     result = strtol(str, &endptr, 16);
+//     if (*endptr != '\0') {
+//         printf("Conversion error: Invalid hex string\n");
+//         assert(0); 
+//     }
+//     return result;
+// }
 
 uint32_t eval(int p, int q) {
   bool status=false;
@@ -174,17 +175,15 @@ uint32_t eval(int p, int q) {
     return 0;
   }
   else if (p == q) {
+    word_t num = 0;
     switch (tokens[q].type)
     {
-      case TK_HEXNUM: return Hex2Dec(tokens[p].str);
-      break;
-      case TK_REGNAME: return isa_reg_str2val(tokens[p].str,&status);
-      break;
-      case TK_NUM: return atoi(tokens[p].str);
-      break;
-    default:printf("NO tokens.type: %s",tokens[q].str);assert(0);
-      break;
+      case TK_HEXNUM:  sscanf(tokens[p].str, "%x", &num);break;
+      case TK_REGNAME: num= isa_reg_str2val(tokens[p].str,&status); break;
+      case TK_NUM:     sscanf(tokens[p].str, "%u", &num);break;
+      default:printf("NO tokens.type: %s",tokens[q].str);assert(0);break;
     }
+    return num;
   }
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
@@ -219,16 +218,18 @@ uint32_t eval(int p, int q) {
           }
           break;
         case '(':
-          num_paren+=1;
+          num_paren++;
           break;
         case ')':
-          num_paren-=1;
+          num_paren--;
           break;
         default: break;
         }
-        // printf("i=%d p=%d q=%d op=%d num_paren=%d type=%d\n",i,p,q,op,num_paren,tokens[i].type);
+         //printf("i=%d p=%d q=%d op=%d num_paren=%d type=%d\n",i,p,q,op,num_paren,tokens[i].type);
       }
+      //printf(" num_paren=%d\n",num_paren);
     }
+   
      /*step3: '*'and'/' */
     if(op==-1){           
       for(int i=p;i<=q;i++){
@@ -249,6 +250,7 @@ uint32_t eval(int p, int q) {
         default: break;
         }
       }
+      //printf(" num_paren=%d\n",num_paren);
     }
     /*step4: '*'derefrence and'$' '-'negative */
     if(op==-1){
@@ -273,12 +275,12 @@ uint32_t eval(int p, int q) {
         }
       }
     } 
+    //printf(" op=%d\n",op);
     //test p 0x80100000+($a0+5)*4-*($t1+8)+1
-   // printf("p=%d q=%d op=%d num_paren=%d\n",p,q,op,num_paren);
-   uint32_t val2 = eval(op + 1, q);
-   uint32_t val1 = 0;
-   /*Initialize val1 to 0 to avoid errors in the case of negative signs or 
-   dereferences in the front of tokens:like *0x80000000 or --1*/
+    //printf("p=%d q=%d op=%d num_paren=%d\n",p,q,op,num_paren);
+   int32_t val2 = eval(op + 1, q);
+   int32_t val1 = 0;
+   /*行首为解引用和负数则val1=0*/
    if (op == p && (tokens[op].type == TK_NEG || tokens[op].type == TK_DEREF)) {
       val1 = 0; } 
     else { 
@@ -307,7 +309,7 @@ word_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
-  /* pretreatment:dereference and negative numbers  */
+  /* 预处理识别负号和解引用 */
   for (int i = 0; i < nr_token; i ++) {
     if (tokens[i].type == '*' && (i == 0 || tokens[i - 1].type == '+'|| \
     tokens[i - 1].type == '-'||tokens[i - 1].type == '*'||\
@@ -320,9 +322,8 @@ word_t expr(char *e, bool *success) {
     tokens[i].type = TK_NEG;
     }
   }
-  *success = true ;
   word_t result = eval(0, nr_token-1);
-  printf("state:%d\t value:%d \n ",*success,result);
+  *success = true ;
   return result;
 }
 

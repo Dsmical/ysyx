@@ -112,7 +112,6 @@ int main(int argc, char *argv[]) {
     int result;
     ret = fscanf(fp, "%d", &result);
     if (ret == 1) {
-    // 检查表达式计算结果是否溢出
     if (result >= 0) {
         unsigned int final_result = (unsigned int)result;
         printf("%u %s\n", final_result, buf);
@@ -124,3 +123,4 @@ int main(int argc, char *argv[]) {
   }
   return 0;
 }
+//./build/gen-expr 1000 |  grep -v -e "warning" -e "overSize" > input

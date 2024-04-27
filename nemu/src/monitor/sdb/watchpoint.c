@@ -50,7 +50,7 @@ WP *new_wp(char *exp){
   bool success=false;
   strcpy(temp->exp,exp);
   temp->value=expr(temp->exp,&success);
-  if(success)printf("Creat wtachpoint successfull!\n");
+  if(success)printf("watchpoint %d: %s = "FMT_WORD"  is set!\n", temp->NO, temp->exp,temp->value);
   assert(success);
 
   if(head==NULL){
@@ -85,7 +85,7 @@ void delete_wp(int N){
     }
   else{
     free_wp(p);
-    printf("Delete watchpoint %d successfully!\n",N);
+    printf("Delete watchpoint NO.%d = %s successfully!\n",N,p->exp);
   }
 }
 void creat_wp(char *arg){
@@ -93,31 +93,36 @@ void creat_wp(char *arg){
 }
 void wp_display(){
   WP *p=head;
-  if(head==NULL)printf("There is no watchpoint!\n");
+  if(head==NULL)Log(ANSI_FG_RED"There is no watchpoint!"ANSI_NONE);
    while(p!=NULL){
-    printf("Watchpoint: NO.%d exp=%s value=%d\n",p->NO,p->exp,p->value);
+    printf("Watchpoint: NO.%d: %s value:"FMT_WORD"\n",p->NO,p->exp,p->value);
     p=p->next;
    }
 }
-void check_wp(){
-  WP *p=head;
-  while(p!=NULL){
-    bool success=false;
-    int temp=expr(p->exp,&success);
-    printf("temp=%d exp=%s value%d\n",temp,p->exp,p->value);
-    if(success){
-      void sdb_mainloop();
-      if(temp!=p->value){
-        nemu_state.state=NEMU_STOP;
-        printf("Trigger watchpoint program to stop\n");
-        sdb_mainloop();
-        return;
-      }
+bool check_wp(){
+  bool check = false;
+  bool success = true;
+  WP *tmp = head;//创建一个链表指向监视点
+  word_t ans, pc;
+  while(tmp != NULL) {//遍历链表所有的监视点
+    ans = expr(tmp->exp, &success);//计算监视点表达式的当前值
+    if(ans != tmp->value) {//如果当前值与之前值不相等
+      check = true;
+      pc = expr("$pc", &success);//打印程序pc
+      Log(ANSI_FG_RED"Hit watchpoint %d at address "FMT_WORD ANSI_NONE, tmp->NO, pc);
+      printf("Watchpoint %d: %s\n", tmp->NO, tmp->exp);//打印命中的监视点
+      printf("Old value = "FMT_WORD"\n", tmp->value);//打印之前值
+      printf("New value = "FMT_WORD"\n", ans);//打印当前值
+      tmp->value = ans;//更新监视点表达式的值
     }
-    else{
-      printf("expr error\n");
-      assert(0);
-    }
-    p=p->next;
+    tmp = tmp->next;//遍历所有监视点，指向下一个监视点
+  }
+  return check;
+}
+
+void _check_wp() {
+  if (check_wp()) {
+    if (nemu_state.state == NEMU_RUNNING)
+      nemu_state.state = NEMU_STOP;
   }
 }

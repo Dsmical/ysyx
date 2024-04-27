@@ -24,18 +24,32 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-  for(int i=0;i<32;i++){  
-    printf("%s \t0x%x \t%u\n",regs[i],cpu.gpr[i],cpu.gpr[i]);  
-    }   
-} 
+  printf("32 General Registers:");
+  for(int i = 0; i < 32; i++) {
+    printf(ANSI_FG_GREEN"%-3s: "ANSI_FG_CYAN FMT_WORD" "ANSI_NONE, regs[i], cpu.gpr[i]);
+    if(i%4 == 3) {
+      printf("\n");
+    }
+  }
+  printf("Program Counter:");
+  printf(ANSI_FG_RED"%-3s: "ANSI_FG_MAGENTA FMT_WORD ANSI_NONE"\n", "$pc", cpu.pc);
+}
+
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+ char tmp[2] ={s[1],s[2]};//remove $
+
   for(int i=0;i<32;i++){  
-    if(strcmp(s,regs[i])==0){
+    if(strcmp(tmp,regs[i])==0){
       *success=true;
       return cpu.gpr[i];
     }
   }
-  *success=false;  
-  return 0;
+  if(strcmp(tmp, "pc")==0) {
+    *success = true;
+    return cpu.pc;
+  }
+  Log("Register not found!");
+  *success = false;
+  return 0;  
 }

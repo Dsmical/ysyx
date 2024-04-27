@@ -20,7 +20,7 @@ ifeq ($(wildcard .config),)
 $(warning $(COLOR_RED)Warning: .config does not exists!$(COLOR_END))
 $(warning $(COLOR_RED)To build the project, first run 'make menuconfig'.$(COLOR_END))
 endif
-
+#@ 在Makefile中表示静默模式，即在执行命令时不显示命令本身，只显示命令的输出结果。$(Q)$(silent) 来进行静默编译。
 Q            := @
 KCONFIG_PATH := $(NEMU_HOME)/tools/kconfig
 FIXDEP_PATH  := $(NEMU_HOME)/tools/fixdep

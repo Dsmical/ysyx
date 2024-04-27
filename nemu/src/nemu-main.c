@@ -30,14 +30,17 @@ int main(int argc, char *argv[]) {
   // FILE *fp = fopen("/home/dsm/ysyx-workbench/nemu/tools/gen-expr/input", "r");
   //   assert(fp != NULL);
   //   word_t expr(char *e, bool *success);
-  //   char line[1024];
+  //   char line[65530];
   //   int result=0;
+  //   int i=1;
+  //   word_t value=0;
   //   bool flag =false;
-  //   char expression[1024];
+  //   char expression[65536];
   //   while (fgets(line, sizeof(line), fp)) {
-  //   if (sscanf(line, "%d %1023[^\n]", &result, expression) == 2) {
-  //     expr(expression,&flag);
-  //     printf("Result: %d, Expression: %s\n", result, expression);       
+  //   if (sscanf(line, "%d %65530[^\n]", &result, expression) == 2) {
+  //     value= expr(expression,&flag);
+  //     //printf("Value:%d Result: %d, Expression: %s\n", value,(word_t)result, expression);
+  //     printf("%d: Value:%u Result: %d\n", i++,value,result);       
   //   }else {printf("Error reading line\n");}
   //   }
   //   fclose(fp);

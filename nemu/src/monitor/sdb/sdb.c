@@ -111,7 +111,7 @@ static int cmd_p(char *args)
   }
   else
   {
-    expr(arg, &state);
+    printf("value=%x\n",expr(arg, &state));
   }
   return 0;
 }

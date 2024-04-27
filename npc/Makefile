@@ -1,50 +1,38 @@
-TOPNAME = switch
-NXDC_FILES = constr/switch.nxdc
-INC_PATH ?=
-
+TOPNAME = top
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
 
-BUILD_DIR = ./build
+#directory
+WORK_DIR = $(shell pwd)
+BUILD_DIR = $(WORK_DIR)/build
+LOG_DIR = $(WORK_DIR)/logs
 OBJ_DIR = $(BUILD_DIR)/obj_dir
-BIN = $(BUILD_DIR)/$(TOPNAME)
-
-default: $(BIN)
-
-$(shell mkdir -p $(BUILD_DIR))
-	
-# constraint file
-SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
-$(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
 # project source
 VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
 CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-CSRCS += $(SRC_AUTO_BIND)
 
-
-include $(NVBOARD_HOME)/scripts/nvboard.mk
+# flags
+VERILATOR_FLAGS += -MMD --build -cc -O3 \
+	--x-assign fast --x-initial fast --noassert 
+VERILATOR_FLAGS += --top-module $(TOPNAME) +incdir+vsrc/include #顶层文件名，包含目录的选项
+VERILATOR_FLAGS += -Mdir $(BUILD_DIR)# 中间文件和编译产物放置在指定的目录 
+VERILATOR_FLAGS += --exe --trace
+# rules for verilator
+#INC_PATH := $(WORK_DIR)/csrc/include $(INC_PATH)
+INC_PATH ?=
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 
-$(BIN):$(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
-	@echo "111111111111111111111111111111111"
-	$(call git_commit, "sim RTL")
-	@rm -rf $(OBJ_DIR)
-	$(VERILATOR) $(VERILATOR_CFLAGS) \
-		--top-module $(TOPNAME) $^ \
-		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS ,$(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+C_FLAGS += -CFLAGS "$(INCFLAGS)"#-CFLAGS :告诉编译器后面的内容是要包含的编译选项。
 
-all : default
-
-run :$(BIN)
-	@$^
-	
+default:
+	@echo "Running simulation for test module"
+	$(VERILATOR) $(C_FLAGS) $(VERILATOR_FLAGS) $(CSRCS)  $(VSRCS)
+run: default
+	$(BUILD_DIR)/V$(TOPNAME)
+sim:run
+	gtkwave $(BUILD_DIR)/waveform.vcd
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) $(LOG_DIR)
 
-.PHONY: default all clean run
+.PHONY: compile sim clean wave 
