@@ -21,7 +21,7 @@
 #define R(i) gpr(i)
 #define Mr vaddr_read
 #define Mw vaddr_write
-//ftrace
+//ftrace///////////////////////////////////////////////
 #define TRACE_jal IFDEF(CONFIG_FTRACE,{ \
   if(rd==1){trace_func_call(s->pc,s->dnpc,false);}})
 #define TRACE_jalr IFDEF(CONFIG_FTRACE,{ \

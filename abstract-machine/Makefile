@@ -31,12 +31,12 @@ ifeq ($(filter $(ARCHS), $(ARCH)), )
 endif
 
 ### Extract instruction set architecture (`ISA`) and platform from `$ARCH`. Example: `ARCH=x86_64-qemu -> ISA=x86_64; PLATFORM=qemu`
-ARCH_SPLIT = $(subst -, ,$(ARCH))
+ARCH_SPLIT = $(subst -, ,$(ARCH)) #替换-为空格
 ISA        = $(word 1,$(ARCH_SPLIT))
 PLATFORM   = $(word 2,$(ARCH_SPLIT))
 
 ### Check if there is something to build
-ifeq ($(flavor SRCS), undefined)
+ifeq ($(flavor SRCS), undefined) #flavor 函数，它会返回指定变量的类型
   $(error Nothing to build)
 endif
 
