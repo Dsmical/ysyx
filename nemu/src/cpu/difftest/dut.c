@@ -63,9 +63,9 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   assert(ref_so_file != NULL);
 
   void *handle;
-  handle = dlopen(ref_so_file, RTLD_LAZY);
+  handle = dlopen(ref_so_file, RTLD_LAZY);//使用 dlopen 函数动态加载参考动态链接库文件
   assert(handle);
-
+  //使用 dlsym 函数从动态链接库中获取特定函数的指针
   ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");
   assert(ref_difftest_memcpy);
 

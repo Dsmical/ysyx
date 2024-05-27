@@ -17,4 +17,6 @@ ifneq ($(CONFIG_ITRACE)$(CONFIG_IQUEUE),)
 CXXSRC = src/utils/disasm.cc
 CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 LIBS += $(shell llvm-config --libs)
+else
+SRCS-BLACKLIST-y += src/utils/trace.c
 endif

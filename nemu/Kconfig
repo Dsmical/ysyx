@@ -135,12 +135,17 @@ config TRACE
   default y
 
 config MTRACE
-bool "Enable mtracer"
-default y
+  bool "Enable mtracer"
+  default y
 
 config FTRACE
-bool "Enable ftracer"
-default y
+  bool "Enable ftracer"
+  default y
+
+config DTRACE
+  depends on TRACE
+  bool "Enable dtracer"
+  default y
 
 config TRACE_START
   depends on TRACE

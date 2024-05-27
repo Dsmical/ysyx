@@ -2,8 +2,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <elf.h>
-
+#include <device/map.h>
 #define MAX_IRINGBUF 12
+
+
 
 typedef struct {
   word_t pc;
@@ -180,7 +182,7 @@ static int find_symbol_func(paddr_t target, bool is_call) {
 void trace_func_call(paddr_t pc, paddr_t target, bool is_tail) {
 	if (symbol_tbl == NULL) return;
 	++call_depth;
-	if (call_depth <= 2) return; // ignore _trm_init & main
+	//if (call_depth <= 2) return; // ignore _trm_init & main
 	int i = find_symbol_func(target, true);
 
   	//log_write(FMT_PADDR ": %*scall [%s@" FMT_PADDR "]\n",
@@ -196,7 +198,7 @@ void trace_func_call(paddr_t pc, paddr_t target, bool is_tail) {
 }
 void trace_func_ret(paddr_t pc) {
 	if (symbol_tbl == NULL) return;
-	if (call_depth <= 2) return; // ignore _trm_init & main
+	//if (call_depth <= 2) return; // ignore _trm_init & main
 	int i = find_symbol_func(pc, false);
   
 	//log_write(FMT_PADDR ": %*sret [%s]\n",
@@ -216,4 +218,15 @@ void trace_func_ret(paddr_t pc) {
 			trace_func_ret(ret_target);
 		}
 	}
+}
+
+//dtrace
+void trace_dread(paddr_t addr, int len, IOMap *map) {
+	log_write("dtrace: read %10s at " FMT_PADDR ",%d\n",
+		map->name, addr, len);
+}
+
+void trace_dwrite(paddr_t addr, int len, word_t data, IOMap *map) {
+	log_write("dtrace: write %10s at " FMT_PADDR ",%d with " FMT_WORD "\n",
+		map->name, addr, len, data);
 }

@@ -20,7 +20,13 @@ void int2string(int num , char * value) {
 } 
 
 int printf(const char *fmt, ...) {
-  panic("Not implemented");
+  va_list args;
+	va_start(args, fmt);
+	char out[500];
+	int ret = vsprintf(out, fmt, args);
+	putstr(out);
+	va_end(args);
+	return ret;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {

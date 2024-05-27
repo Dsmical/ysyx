@@ -87,3 +87,6 @@ void init_device() {
 
   IFNDEF(CONFIG_TARGET_AM, init_alarm());
 }
+ //   调用init_map()进行初始化.
+ //   对上述设备进行初始化, 其中在初始化VGA时还会进行一些和SDL相关的初始化工作, 包括创建窗口, 设置显示模式等;
+ //   然后会进行定时器(alarm)相关的初始化工作. 定时器的功能在PA4最后才会用到, 目前可以忽略它.
