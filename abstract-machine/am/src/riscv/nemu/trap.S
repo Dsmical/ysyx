@@ -40,15 +40,15 @@ f(30) f(31)
 .align 3
 .globl __am_asm_trap
 __am_asm_trap:
-  addi sp, sp, -CONTEXT_SIZE
+  addi sp, sp, -CONTEXT_SIZE # 分配栈空间
 
-  MAP(REGS, PUSH)
+  MAP(REGS, PUSH)# 将寄存器压入栈空间
 
-  csrr t0, mcause
-  csrr t1, mstatus
-  csrr t2, mepc
+  csrr t0, mcause# t0保存异常原因
+  csrr t1, mstatus# t1保存当前状态
+  csrr t2, mepc# t2保存当前异常pc值
 
-  STORE t0, OFFSET_CAUSE(sp)
+  STORE t0, OFFSET_CAUSE(sp)#t0 的值存储到偏移量为 OFFSET_CAUSE(sp) 的位置
   STORE t1, OFFSET_STATUS(sp)
   STORE t2, OFFSET_EPC(sp)
 
@@ -59,6 +59,7 @@ __am_asm_trap:
 
   mv a0, sp
   jal __am_irq_handle
+  mv sp, a0
 
   LOAD t1, OFFSET_STATUS(sp)
   LOAD t2, OFFSET_EPC(sp)

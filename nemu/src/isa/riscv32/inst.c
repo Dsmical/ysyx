@@ -34,7 +34,40 @@
 
 IFDEF(CONFIG_FTRACE,void trace_func_call(paddr_t pc, paddr_t target, bool is_tail));
 IFDEF(CONFIG_FTRACE,void trace_func_ret(paddr_t pc) );
-////////////////////////////////////////////////////
+//mret///////////////////////////////////////////////
+#define MRET() { \
+  s->dnpc = CSR(0x341); \
+  cpu.csr.mstatus &= ~(1<<3); \
+  cpu.csr.mstatus |= ((cpu.csr.mstatus&(1<<7))>>4); \
+  cpu.csr.mstatus |= (1<<7); \
+  cpu.csr.mstatus &= ~((1<<11)+(1<<12)); \
+}//MIE->0 MPIE->MIE MPIE->1 MPP->00
+//////////////////////////////////////////////
+//etrace
+static void etrace() {
+  IFDEF(CONFIG_ETRACE, {
+    printf("\n" 
+      ANSI_FMT("[ETRACE]", ANSI_FG_YELLOW) 
+      "ecall in mepc = " FMT_WORD ", mcause = " FMT_WORD "\n",
+      cpu.csr.mepc, cpu.csr.mcause);
+  });
+}
+//////////////////////////////////////////////
+
+static vaddr_t *csr_id_instr2address(word_t imm) {
+  switch (imm)
+  {
+  case 0x341: return &(cpu.csr.mepc);
+  case 0x342: return &(cpu.csr.mcause);
+  case 0x300: return &(cpu.csr.mstatus);
+  case 0x305: return &(cpu.csr.mtvec);
+  default: panic("Unknown csr");
+  }
+}
+//说明：ECALL：li a7, -1 ;mcause 用户模式下为8,在机器模式下为11(应该默认就是运行在M模式下，所以直接给它赋值11)
+#define ECALL(dnpc) { dnpc = (isa_raise_intr(11, s->pc)); }
+#define CSR(i) *csr_id_instr2address(i)
+
 enum {
   TYPE_I, TYPE_U, TYPE_S, TYPE_J,TYPE_R,TYPE_B,
   TYPE_N, // none
@@ -80,13 +113,15 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and    , R, R(rd) = src1 & src2);
   INSTPAT("??????? ????? ????? 111 ????? 00100 11", andi   , I, R(rd) = src1 & imm);
   INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
+
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, s->dnpc = (src1 == src2) ? (s->pc + imm) : s->snpc);
-  //INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, if ((sword_t)src1 == (sword_t)src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 101 ????? 11000 11", bge    , B, if ((sword_t)src1 >= (sword_t)src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 111 ????? 11000 11", bgeu   , B, if (src1 >= src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, if ((sword_t)src1 != (sword_t)src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 100 ????? 11000 11", blt    , B, if ((sword_t)src1 < (sword_t)src2) s->dnpc = s->pc + imm);
   INSTPAT("??????? ????? ????? 110 ????? 11000 11", bltU   , B, if (src1 < src2) s->dnpc = s->pc + imm);
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, R(rd) = CSR(imm);CSR(imm)=src1;);
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, R(rd) = CSR(imm);CSR(imm)|=src1;);
 
   INSTPAT("0000001 ????? ????? 100 ????? 01100 11", div    , R, R(rd) = ((sword_t)src1 / (sword_t)src2));
   INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu   , R, R(rd) = src1 / src2);
@@ -125,6 +160,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000000 ????? ????? 100 ????? 01100 11", xor    , R, R(rd) = src1^src2);
   INSTPAT("??????? ????? ????? 100 ????? 00100 11", xori   , I, R(rd) = src1^imm);
 
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , R, MRET(););
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ECALL  , I, ECALL(s->dnpc);etrace());
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
@@ -133,7 +170,7 @@ static int decode_exec(Decode *s) {
 
   return 0;
 }
-void iringbuf_inst_get(word_t pc, uint32_t inst);//函数申明
+IFDEF(CONFIG_ITRACE, void iringbuf_inst_get(word_t pc, uint32_t inst);)//函数申明
 
 int isa_exec_once(Decode *s) {
   s->isa.inst.val = inst_fetch(&s->snpc, 4);

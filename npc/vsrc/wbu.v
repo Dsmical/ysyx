@@ -7,5 +7,4 @@ module wbu (
 );
   
   assign o_rd = i_ld_en ? i_lsu_res : i_exu_res;
-    
 endmodule

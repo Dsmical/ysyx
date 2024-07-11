@@ -2,6 +2,7 @@
 `define CPU_WIDTH 32
 //Register File
 `define REG_COUNT (1<<`REG_ADDRW)
+`define CSR_REG_COUNT (1<<`CSRS_OPT_WIDTH)
 `define REG_ADDRW 5
 // PC Reset Value
 `define RESET_PC 32'h80000000
@@ -41,31 +42,35 @@
 `define FUNC3_LBU               3'b100
 `define FUNC3_LHU               3'b101
 
+`define FUNC3_CSRRW             3'b001
+`define FUNC3_CSRRS             3'b010
+
 // EXU source selection:
-`define EXU_SEL_WIDTH   2
-`define EXU_SEL_REG     `EXU_SEL_WIDTH'b00
-`define EXU_SEL_IMM     `EXU_SEL_WIDTH'b01
-`define EXU_SEL_PC4     `EXU_SEL_WIDTH'b10
-`define EXU_SEL_PCI     `EXU_SEL_WIDTH'b11
+`define EXU_SEL_WIDTH   3
+`define EXU_SEL_REG     `EXU_SEL_WIDTH'b000
+`define EXU_SEL_IMM     `EXU_SEL_WIDTH'b001
+`define EXU_SEL_PC4     `EXU_SEL_WIDTH'b010
+`define EXU_SEL_PCI     `EXU_SEL_WIDTH'b011
+`define EXU_SEL_CSR     `EXU_SEL_WIDTH'b100//csr
 
 // EXU opreator:
 `define EXU_OPT_WIDTH   5
-`define EXU_ADD         `EXU_OPT_WIDTH'h1
-`define EXU_SUB         `EXU_OPT_WIDTH'h2
-`define EXU_AND         `EXU_OPT_WIDTH'h3
-`define EXU_OR          `EXU_OPT_WIDTH'h4
-`define EXU_XOR         `EXU_OPT_WIDTH'h5
-`define EXU_SLL         `EXU_OPT_WIDTH'h6
-`define EXU_SRL         `EXU_OPT_WIDTH'h7
-`define EXU_SRA         `EXU_OPT_WIDTH'h8
-`define EXU_SLT         `EXU_OPT_WIDTH'h9
-`define EXU_SLTU        `EXU_OPT_WIDTH'h10
-`define EXU_BEQ         `EXU_OPT_WIDTH'h11
-`define EXU_BNE         `EXU_OPT_WIDTH'h12
-`define EXU_BLT         `EXU_OPT_WIDTH'h13
-`define EXU_BGE         `EXU_OPT_WIDTH'h14
-`define EXU_BLTU        `EXU_OPT_WIDTH'h15
-`define EXU_BGEU        `EXU_OPT_WIDTH'h16
+`define EXU_ADD         `EXU_OPT_WIDTH'h1 //EXU_ADD: 加法
+`define EXU_SUB         `EXU_OPT_WIDTH'h2 //EXU_SUB: 减法
+`define EXU_AND         `EXU_OPT_WIDTH'h3 //EXU_AND: 按位与
+`define EXU_OR          `EXU_OPT_WIDTH'h4 //EXU_OR:  按位或
+`define EXU_XOR         `EXU_OPT_WIDTH'h5 //EXU_XOR: 按位异或
+`define EXU_SLL         `EXU_OPT_WIDTH'h6 //EXU_SLL: 逻辑左移
+`define EXU_SRL         `EXU_OPT_WIDTH'h7 //EXU_SRL: 逻辑右移
+`define EXU_SRA         `EXU_OPT_WIDTH'h8 //EXU_SRA: 算术右移
+`define EXU_SLT         `EXU_OPT_WIDTH'h9 //EXU_SLT: 有符号数小于
+`define EXU_SLTU        `EXU_OPT_WIDTH'h10//EXU_SLTU: 无符号数小于比较
+`define EXU_BEQ         `EXU_OPT_WIDTH'h11//EXU_BEQ: 等于比较并分支
+`define EXU_BNE         `EXU_OPT_WIDTH'h12//EXU_BNE: 不等于比较并分支
+`define EXU_BLT         `EXU_OPT_WIDTH'h13//EXU_BLT: 有符号数小于比较并分支
+`define EXU_BGE         `EXU_OPT_WIDTH'h14//EXU_BGE: 有符号数大于等于比较并分支
+`define EXU_BLTU        `EXU_OPT_WIDTH'h15//EXU_BLTU: 无符号数小于比较并分支
+`define EXU_BGEU        `EXU_OPT_WIDTH'h16//EXU_BGEU: 无符号数大于等于比较并分支
 
 // ALU opreator:
 `define ALU_ADD         `EXU_ADD
@@ -88,3 +93,10 @@
 `define LSU_SH          `LSU_OPT_WIDTH'b0011    // 001 for FUNC3_LH_SH, 1 for store
 `define LSU_SW          `LSU_OPT_WIDTH'b0101    // 010 for FUNC3_LW_SW, 1 for store
 `define LSU_NOP         `LSU_OPT_WIDTH'b1111    //1111 for nop!! "lowest bit = 0" <=> "this is an load ins"
+
+// CSRs
+`define CSRS_OPT_WIDTH 12
+`define CSRS_MSTATUS    `CSRS_OPT_WIDTH'h300
+`define CSRS_MTVEC      `CSRS_OPT_WIDTH'h305
+`define CSRS_MEPC       `CSRS_OPT_WIDTH'h341
+`define CSRS_MCAUSE     `CSRS_OPT_WIDTH'h342

@@ -54,7 +54,7 @@ word_t paddr_read(paddr_t addr, int len) {
   IFDEF(CONFIG_MTRACE,void display_pread(paddr_t addr, int len));//mtrace
   IFDEF(CONFIG_MTRACE,display_pread(addr, len));                 //mtrace
   if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));             //mtrace
   out_of_bound(addr);
   return 0;
 }

@@ -12,6 +12,7 @@ module idu(
   output reg   [`LSU_OPT_WIDTH-1:0] o_lsu_opt     , //for lsu.
   output                            o_brch        , //for pcu.
   output                            o_jal         , //for pcu.
+  //output                            o_ecall       , //for pcu.
   output                            o_jalr          //for pcu.
 );
 
@@ -37,7 +38,7 @@ module idu(
       `TYPE_I:        begin                   o_rs1id = rs1id;  o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{20{i_ins[31]}},i_ins[31:20]};                             end
       `TYPE_I_LOAD:   begin                   o_rs1id = rs1id;  o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{20{i_ins[31]}},i_ins[31:20]};                             end
       `TYPE_I_JALR:   begin                   o_rs1id = rs1id;  o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{20{i_ins[31]}},i_ins[31:20]};                             end
-      `TYPE_I_EBRK:   begin                   o_rs1id = rs1id;  o_rdid = rdid;                  o_imm = {{20{i_ins[31]}},i_ins[31:20]};                             end
+      `TYPE_I_EBRK:   begin                   o_rs1id = rs1id;  o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{20{i_ins[31]}},i_ins[31:20]};                             end
       `TYPE_U_LUI:    begin                   o_rs1id = 0  ;    o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{0{i_ins[31]}},i_ins[31:12],12'b0};                       end //LUI: rdid = x0 + imm;
       `TYPE_U_AUIPC:  begin                                     o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{0{i_ins[31]}},i_ins[31:12],12'b0};                       end
       `TYPE_J:        begin                                     o_rdid = rdid;  o_rdwen = 1'b1; o_imm = {{12{i_ins[31]}},i_ins[19:12],i_ins[20],i_ins[30:21],1'b0}; end
@@ -53,7 +54,7 @@ module idu(
     id_err        = 3'b0;
     case (opcode)
       `TYPE_S:        begin o_exu_opt = `EXU_ADD;  o_exu_src_sel = `EXU_SEL_IMM; end // M[rs1+imm] = rs2
-      `TYPE_I_EBRK:   begin                                                      end // no use, dirct break.
+      //`TYPE_I_EBRK:   begin o_exu_opt = `EXU_ADD;  o_exu_src_sel = `EXU_SEL_CSR; end // no use, dirct break.
       `TYPE_I_LOAD:   begin o_exu_opt = `EXU_ADD;  o_exu_src_sel = `EXU_SEL_IMM; end // rdid = M[rs1+imm]
       `TYPE_I_JALR:   begin o_exu_opt = `EXU_ADD;  o_exu_src_sel = `EXU_SEL_PC4; end // rdid = PC+4
       `TYPE_J:        begin o_exu_opt = `EXU_ADD;  o_exu_src_sel = `EXU_SEL_PC4; end // rdid = PC+4
@@ -70,6 +71,15 @@ module idu(
             `FUNC3_BLTU:  o_exu_opt = `EXU_BLTU;
             `FUNC3_BGEU:  o_exu_opt = `EXU_BGEU; 
             default:      id_err[1] = 1'b1; //func3_err
+          endcase
+        end
+      `TYPE_I_EBRK:
+        begin
+          o_exu_src_sel = `EXU_SEL_CSR;
+          case (func3)
+            `FUNC3_CSRRW:   o_exu_opt = `EXU_ADD;
+            `FUNC3_CSRRS:   o_exu_opt = `EXU_ADD;
+            default:      ; //func3_err
           endcase
         end
       `TYPE_I:
@@ -93,12 +103,12 @@ module idu(
           case (func3)
             `FUNC3_ADD_SUB:      case (func7) 7'b0000000:o_exu_opt = `EXU_ADD ; 7'b0100000: o_exu_opt = `EXU_SUB; default:id_err[2] = 1'b1; endcase
             `FUNC3_SRL_SRA:      case (func7) 7'b0000000:o_exu_opt = `EXU_SRL ; 7'b0100000: o_exu_opt = `EXU_SRA; default:id_err[2] = 1'b1; endcase
-            `FUNC3_SLL:          case (func7) 7'b0000000:o_exu_opt = `EXU_SLL ; default:id_err[2] = 1'b1; endcase
-            `FUNC3_XOR:          case (func7) 7'b0000000:o_exu_opt = `EXU_XOR ; default:id_err[2] = 1'b1; endcase
-            `FUNC3_OR:           case (func7) 7'b0000000:o_exu_opt = `EXU_OR  ; default:id_err[2] = 1'b1; endcase
-            `FUNC3_AND:          case (func7) 7'b0000000:o_exu_opt = `EXU_AND ; default:id_err[2] = 1'b1; endcase
-            `FUNC3_SLT:          case (func7) 7'b0000000:o_exu_opt = `EXU_SLT ; default:id_err[2] = 1'b1; endcase
-            `FUNC3_SLTU:         case (func7) 7'b0000000:o_exu_opt = `EXU_SLTU; default:id_err[2] = 1'b1; endcase
+            `FUNC3_SLL:          case (func7) 7'b0000000:o_exu_opt = `EXU_SLL ;                                   default:id_err[2] = 1'b1; endcase
+            `FUNC3_XOR:          case (func7) 7'b0000000:o_exu_opt = `EXU_XOR ;                                   default:id_err[2] = 1'b1; endcase
+            `FUNC3_OR:           case (func7) 7'b0000000:o_exu_opt = `EXU_OR  ;                                   default:id_err[2] = 1'b1; endcase
+            `FUNC3_AND:          case (func7) 7'b0000000:o_exu_opt = `EXU_AND ;                                   default:id_err[2] = 1'b1; endcase
+            `FUNC3_SLT:          case (func7) 7'b0000000:o_exu_opt = `EXU_SLT ;                                   default:id_err[2] = 1'b1; endcase
+            `FUNC3_SLTU:         case (func7) 7'b0000000:o_exu_opt = `EXU_SLTU;                                   default:id_err[2] = 1'b1; endcase
             default:             id_err[1] = 1'b1; //func3_err
           endcase
         end
@@ -116,9 +126,10 @@ module idu(
   end
 
   // 4.pcu: branch,o_jal,o_jalr.  ////////////////////////////////////////////////////////////////////
-  assign o_brch = (opcode == `TYPE_B)? 1:0;
-  assign o_jal  = (opcode == `TYPE_J)? 1:0;
-  assign o_jalr = (opcode == `TYPE_I_JALR)? 1:0;
+  assign o_brch   = (opcode == `TYPE_B)? 1:0;
+  assign o_jal    = (opcode == `TYPE_J)? 1:0;
+  assign o_jalr   = (opcode == `TYPE_I_JALR)? 1:0;
+  //assign o_ecall  = (opcode == `TYPE_I_EBRK & o_imm ==`CPU_WIDTH'b0)? 1:0;
 
   // 5.sim:  /////////////////////////////////////////////////////////////////////////////////////////
   // always@(*)begin

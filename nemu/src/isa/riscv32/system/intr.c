@@ -19,9 +19,14 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   /* TODO: Trigger an interrupt/exception with ``NO''.
    * Then return the address of the interrupt/exception vector.
    */
+  cpu.csr.mstatus &= ~(1<<7);//MPIE-> 0
+  cpu.csr.mstatus |= ((cpu.csr.mstatus&(1<<3))<<4);//MIE->MPIE
+  cpu.csr.mstatus &= ~(1<<3);//MIE-> 0 关闭中断使能
+  cpu.csr.mstatus |= ((1<<11)+(1<<12));//将模式设置为M模式
+
   cpu.csr.mcause = NO;
   cpu.csr.mepc = epc;
-  return 0;
+  return cpu.csr.mtvec;
 }
 
 word_t isa_query_intr() {

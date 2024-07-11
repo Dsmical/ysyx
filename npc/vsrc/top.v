@@ -25,9 +25,11 @@ module top(
 
   wire [`CPU_WIDTH-1:0] exu_res;         // exu -> lsu/wbu.
   wire [`CPU_WIDTH-1:0] lsu_res;         // lsu -> wbu.
+  wire [`CPU_WIDTH-1:0] csr    ;         // csr -> exu.
+  wire [`CPU_WIDTH-1:0] ecall_pc;         // csr -> pcu.
 
   wire zero;                             // exu -> pcu.
-  wire brch,jal,jalr;                    // idu -> pcu.
+  wire brch,jal,jalr,ecall;              // idu -> pcu.
 
   wire [`CPU_WIDTH-1:0] rd;              // wbu -> reg.  
   wire rdwen;                            // idu -> reg.
@@ -65,14 +67,27 @@ module top(
     .o_lsu_opt     (lsu_opt     ),
     .o_brch        (brch        ),
     .o_jal         (jal         ),
+    //.o_ecall       (ecall       ),
     .o_jalr        (jalr        )
   );
-
+  csrfile u_csrfile(
+    .i_clk  (i_clk        ),
+    .i_rst_n(rst_n_sync   ),
+    .i_wen  (rdwen        ),
+    .i_ins  (ins          ),
+    .i_pc   (pc           ),
+    .i_imm  (imm          ),
+    .i_src1 (rs1          ),
+    .o_pc   (ecall_pc     ),
+    .o_ecall(ecall        ),
+    .o_csr  (csr          ) 
+  );
   exu u_exu(
     .i_pc      (pc          ),
     .i_rs1     (rs1         ),
     .i_rs2     (rs2         ),
     .i_imm     (imm         ),
+    .i_csr     (csr         ),
     .i_src_sel (exu_src_sel ),
     .i_opt     (exu_opt     ),
     .o_exu_res (exu_res     ),
@@ -96,22 +111,24 @@ module top(
   );
 
   pcu u_pcu(
-    .i_clk    (i_clk      ),
-    .i_rst_n  (rst_n_sync ),
-    .i_brch   (brch       ),
-    .i_jal    (jal        ),
-    .i_jalr   (jalr       ),
-    .i_zero   (zero       ),
-    .i_rs1    (rs1        ),
-    .i_imm    (imm        ),
-    .o_pc     (pc         )
+    .i_clk      (i_clk      ),
+    .i_rst_n    (rst_n_sync ),
+    .i_brch     (brch       ),
+    .i_jal      (jal        ),
+    .i_jalr     (jalr       ),
+    .i_ecall    (ecall      ),
+    .i_zero     (zero       ),
+    .i_rs1      (rs1        ),
+    .i_imm      (imm        ),
+    .i_ecall_pc (ecall_pc   ),
+    .o_pc       (pc         )
   );
 
   //3.sim:  ////////////////////////////////////////////////////////
-  // import "DPI-C" function void check_rst(input bit rst_flag);
+  //import "DPI-C" function void check_rst(input bit rst_flag);
   import "DPI-C" function bit check_finish(input int finish_flag);
   always@(*)begin
-    // check_rst(rst_n_sync);
+     //check_rst(rst_n_sync);
     if(check_finish(ins))begin  //ins == ebreak.
       $display("\n----------EBREAK: HIT !!%s!! TRAP!!---------------\n",a0zero? "GOOD":"BAD");
       $finish;

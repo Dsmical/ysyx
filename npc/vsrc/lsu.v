@@ -4,8 +4,8 @@ module lsu (
   input                               i_rst_n , 
   input         [`LSU_OPT_WIDTH-1:0]  i_opt   ,   // lsu i_opt.
   input         [`CPU_WIDTH-1:0]      i_addr  ,   // mem i_addr. from exu result.
-  input         [`CPU_WIDTH-1:0]      i_regst ,   // for st.
-  output  reg   [`CPU_WIDTH-1:0]      o_regld     // for ld.
+  input         [`CPU_WIDTH-1:0]      i_regst ,   // for st.存储数据（Store Data）
+  output  reg   [`CPU_WIDTH-1:0]      o_regld     // for ld.加载数据（Load Data）
 );
 
   wire ren = ~i_opt[0];
@@ -48,11 +48,11 @@ module lsu (
   );
     
   //for sim:  ////////////////////////////////////////////////////////////////////////////////////////////
-  // import "DPI-C" function void rtl_pmem_read (input int raddr, output int rdata, input bit ren);
-  // import "DPI-C" function void rtl_pmem_write(input int waddr, input int wdata, input byte wmask);
-  // always @(*) begin
-  //   rtl_pmem_write(waddr, wdata, wmask);
-  //   rtl_pmem_read (raddr, rdata, ren);
-  // end
+  import "DPI-C" function void rtl_pmem_read (input int raddr, output int rdata, input bit ren);
+  import "DPI-C" function void rtl_pmem_write(input int waddr, input int wdata, input byte wmask);
+  always @(*) begin
+    rtl_pmem_write(waddr, wdata, wmask);
+    rtl_pmem_read (raddr, rdata, ren);
+  end
 
 endmodule

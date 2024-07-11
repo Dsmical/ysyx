@@ -4,6 +4,7 @@ module exu (
   input         [`CPU_WIDTH-1:0]      i_rs1     ,
   input         [`CPU_WIDTH-1:0]      i_rs2     ,
   input         [`CPU_WIDTH-1:0]      i_imm     ,
+  input         [`CPU_WIDTH-1:0]      i_csr     ,//csr
   input         [`EXU_SEL_WIDTH-1:0]  i_src_sel ,
   input         [`EXU_OPT_WIDTH-1:0]  i_opt     ,
   output reg    [`CPU_WIDTH-1:0]      o_exu_res ,
@@ -16,14 +17,23 @@ module exu (
     `EXU_SEL_REG, i_rs1,
     `EXU_SEL_IMM, i_rs1,
     `EXU_SEL_PC4, i_pc,
-    `EXU_SEL_PCI, i_pc
+    `EXU_SEL_PCI, i_pc,
+    `EXU_SEL_CSR, `CPU_WIDTH'h0,
+    3'b101, `CPU_WIDTH'h0,
+    3'b110, `CPU_WIDTH'h0,
+    3'b111, `CPU_WIDTH'h0
+
   });
 
   MuxKeyWithDefault #(1<<`EXU_SEL_WIDTH, `EXU_SEL_WIDTH, `CPU_WIDTH) mux_src2 (src2, i_src_sel, `CPU_WIDTH'b0, {
     `EXU_SEL_REG, i_rs2,
     `EXU_SEL_IMM, i_imm,
     `EXU_SEL_PC4, `CPU_WIDTH'h4,
-    `EXU_SEL_PCI, i_imm
+    `EXU_SEL_PCI, i_imm,
+    `EXU_SEL_CSR, i_csr,
+    3'b101, i_csr,
+    3'b110, i_csr,
+    3'b111, i_csr
 });
 
   // 请记住：硬件中不区分有符号和无符号，全部按照补码进行运算！
@@ -34,7 +44,11 @@ module exu (
   wire                       sububit; // use for sltu,bltu,bgeu
 
   wire less;
-  assign less = src2=={1'b1, {(`CPU_WIDTH-1){1'b0}}} ? 0 : src1=={1'b1, {(`CPU_WIDTH-1){1'b0}}} ? 1 : ~src1[`CPU_WIDTH-1]&src2[`CPU_WIDTH-1] ? 0 : src1[`CPU_WIDTH-1]&~src2[`CPU_WIDTH-1] ? 1 : alu_res[`CPU_WIDTH-1];
+  assign less = src2=={1'b1, {(`CPU_WIDTH-1){1'b0}}} ? 0 : 
+                src1=={1'b1, {(`CPU_WIDTH-1){1'b0}}} ? 1 : 
+                ~src1[`CPU_WIDTH-1]&src2[`CPU_WIDTH-1] ? 0 : 
+                src1[`CPU_WIDTH-1]&~src2[`CPU_WIDTH-1] ? 1 : 
+                alu_res[`CPU_WIDTH-1];
  
   always @(*) begin
     case (i_opt)
@@ -49,7 +63,9 @@ module exu (
       default:    begin alu_opt = i_opt;      o_exu_res = alu_res;                                                   end
     endcase
   end
-
+  // always@(*)begin
+  //    $display("src1=%x src1=%x alu_opt=%x alu_res=%x sububit=%x i_src_sel=%x\n",src1,src2,alu_opt,alu_res,sububit,i_src_sel);
+  //   end
   alu u_alu(
     .i_src1    (src1      ),
     .i_src2    (src2      ),

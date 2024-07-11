@@ -17,6 +17,28 @@
 #include <cpu/difftest.h>
 #include "../local-include/reg.h"
 
+#define CHECKDIFF(p) if (ref_r->p != cpu.p) { \
+  Log(ANSI_FG_RED"difftest fail at " #p ", expect %#x got %#x\n"ANSI_NONE, ref_r->p, cpu.p); \
+  return false; \
+}
+#define CHECKDIFF_FMT(p, fmt, ...) if (ref_r->p != cpu.p) { \
+  Log(ANSI_FG_RED"difftest fail at " fmt ", expect %#x got %#x\n"ANSI_NONE, ## __VA_ARGS__, ref_r->p, cpu.p); \
+  return false; \
+}
+
+bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
+  int reg_num = ARRLEN(cpu.gpr);
+  for (int i = 0; i < reg_num; i++) {
+    CHECKDIFF_FMT(gpr[i], "gpr[%d]", i);
+  }
+  CHECKDIFF(pc);
+  CHECKDIFF(csr.mstatus);
+	CHECKDIFF(csr.mcause);
+  CHECKDIFF(csr.mepc);
+  CHECKDIFF(csr.mtvec);
+  return true;
+}
+/*
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   int reg_num = ARRLEN(cpu.gpr);
   for (int i = 0; i < reg_num; i++) {
@@ -29,6 +51,6 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   }
   return true;
 }
-
+*/
 void isa_difftest_attach() {
 }

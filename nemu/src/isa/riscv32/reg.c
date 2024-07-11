@@ -31,6 +31,10 @@ void isa_reg_display() {
       printf("\n");
     }
   }
+  printf("mstatus = 0x%x\n",cpu.csr.mstatus);
+  printf("mtvec   = 0x%x\n",cpu.csr.mtvec);
+  printf("mepc    = 0x%x\n",cpu.csr.mepc);
+  printf("mcause  = 0x%x\n",cpu.csr.mcause);
   printf("Program Counter:");
   printf(ANSI_FG_RED"%-3s: "ANSI_FG_MAGENTA FMT_WORD ANSI_NONE"\n", "$pc", cpu.pc);
 }
