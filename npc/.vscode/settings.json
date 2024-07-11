@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "paddr.h": "c",
+        "string.h": "c",
+        "common.h": "c",
+        "utils.h": "c",
+        "vtop___024root.h": "c",
+        "*.tcc": "cpp",
+        "sstream": "cpp",
+        "functional": "cpp",
+        "isa.h": "c",
+        "isa-def.h": "c"
+    }
+}

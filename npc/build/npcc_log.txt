@@ -1,0 +1,10 @@
+[1;34m[/home/dsm/ysyx-workbench/npc/csrc/log.c:30 init_log] Log is written to /home/dsm/ysyx-workbench/npc/build/npcc_log.txt[0m
+[1;34m[/home/dsm/ysyx-workbench/npc/csrc/monitor/monitor.cpp:29 load_img] No image is given. Use the default build-in image.[0m
+[1;34m[/home/dsm/ysyx-workbench/npc/csrc/monitor/monitor.cpp:12 welcome] Trace: [1;31mOFF[0m[0m
+[1;34m[/home/dsm/ysyx-workbench/npc/csrc/monitor/monitor.cpp:16 welcome] Build time: 20:01:24, Jul  8 2024[0m
+0x80000000: 00500093 addi	ra, zero, 5
+0x80000000: 00500093 addi	ra, zero, 5
+0x80000004: 00100113 addi	sp, zero, 1
+0x80000008: 00200113 addi	sp, zero, 2
+0x8000000c: 00508113 addi	sp, ra, 5
+0x80000010: 00100073 ebreak	
